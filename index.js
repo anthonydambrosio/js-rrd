@@ -1,4 +1,4 @@
-
+const os = require( 'os' );
 
 function seconds( unit, amount ) {
 	return ({
@@ -12,24 +12,34 @@ function seconds( unit, amount ) {
 }
 
 function create( unit, amount ) {
+	var start = Date.now(),
+		samples = new Array( seconds( unit, amount ) ),
+		index = 0;
 	return {
-		start: Date.now(),
-		samples: new Array( seconds( unit, amount ) ),
-		index: 0,
-		add: function( data ) {
-			this.samples[this.index++] = { ts: Date.now(), data: data };
+		update: function( data ) {
+			samples[index++] = { ts: Date.now(), data: data };
+			index %= amount;
+		},
+		addData: function( cb, interval, seconds ) {
+			var addfunc = function() {
+				samples[index++] = { ts: Date.now(), data: cb() };
+				index %= amount;
+			};
+			addfunc();
+			var id = setInterval( addfunc, interval );
+			if ( seconds )
+				setTimeout( function() { clearInterval( id ) }, seconds * 1000 );
+			return id;
 		},
 		dump: function() {
-			for ( i in this.samples ) {
-				console.dir( i, null );
+			for ( var i = 0; i < samples.length; i++ ) {
+				console.dir( samples[i], { depth: null } );
 			}
 		}
 	}
 }
 
-var md = create( 'sec', 10 );
-console.dir( md );
-md.add( 1 );
-md.add( 2 );
-md.add( 3 );
-md.dump();
+var jsrrd = create( 'min', 1 );
+jsrrd.addData( os.cpus, 1000, 90 );
+
+setTimeout( jsrrd.dump, 9000 );
