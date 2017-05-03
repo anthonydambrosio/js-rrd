@@ -33,10 +33,8 @@ function create( unit, count, interval ) {
 			update: function( data ) {
 				this.total += data;
 				this.count++;
-				console.log( this.total + " : " + this.count );
 			},
 			result: function() {
-				console.log( "in result" );
 				var total = this.total;
 				var count = this.count;
 				this.total = 0.0;
@@ -46,13 +44,11 @@ function create( unit, count, interval ) {
 		},
 		operation = avg,
 		increment = function() {
-			console.log( "incrementing" );
 			result[ index ] = operation.result();
 			if ( index < result.length-1 )
 				index += 1;
 			else
 				index = 0;
-			console.log( index );
 		};
 		var iid = setInterval( increment, interval );
 	return {
@@ -60,7 +56,6 @@ function create( unit, count, interval ) {
 			operation.update( data );
 		},
 		dump: function() {
-			// clearInterval( iid );
 			console.dir( result, { depth: null } );
 		},
 		snapshot: fucntion() {
