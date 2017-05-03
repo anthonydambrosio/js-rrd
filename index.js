@@ -11,35 +11,75 @@ function seconds( unit, amount ) {
 	}[unit] || 1) * (amount || 1);
 }
 
-function create( unit, amount ) {
-	var start = Date.now(),
-		samples = new Array( seconds( unit, amount ) ),
-		index = 0;
+
+function create( unit, count, interval ) {
+	var result = new Array( count ).fill( 0 );
+		interval = interval,
+		index = 0,
+		sum = {
+			total: 0,
+			update: function( data ) {
+				this.total += data;
+			},
+			result: function() {
+				var total = this.total;
+				this.total = 0;
+				return total;
+			}
+		},
+		avg = {
+			total: 0.0,
+			count: 0,
+			update: function( data ) {
+				this.total += data;
+				this.count++;
+				console.log( this.total + " : " + this.count );
+			},
+			result: function() {
+				console.log( "in result" );
+				var total = this.total;
+				var count = this.count;
+				this.total = 0.0;
+				this.count = 0;
+				return count == 0 ? 0.0 : total / count;
+			}
+		},
+		operation = avg,
+		increment = function() {
+			console.log( "incrementing" );
+			result[ index ] = operation.result();
+			if ( index < result.length-1 )
+				index += 1;
+			else
+				index = 0;
+			console.log( index );
+		};
+		var iid = setInterval( increment, interval );
 	return {
 		update: function( data ) {
-			samples[index++] = { ts: Date.now(), data: data };
-			index %= amount;
-		},
-		addData: function( cb, interval, seconds ) {
-			var addfunc = function() {
-				samples[index++] = { ts: Date.now(), data: cb() };
-				index %= amount;
-			};
-			addfunc();
-			var id = setInterval( addfunc, interval );
-			if ( seconds )
-				setTimeout( function() { clearInterval( id ) }, seconds * 1000 );
-			return id;
+			operation.update( data );
 		},
 		dump: function() {
-			for ( var i = 0; i < samples.length; i++ ) {
-				console.dir( samples[i], { depth: null } );
-			}
+			// clearInterval( iid );
+			console.dir( result, { depth: null } );
+		},
+		snapshot: fucntion() {
+			return result;
+		}
+		stop: function() {
+			clearInterval( iid );
 		}
 	}
 }
 
-var jsrrd = create( 'min', 1 );
-jsrrd.addData( os.cpus, 1000, 90 );
+var jsrrd = create( 'sec', 30, 10000 );
 
-setTimeout( jsrrd.dump, 9000 );
+var getMem = function() {
+	var mem = os.freemem();
+	jsrrd.update( mem );
+};
+
+setInterval( getMem, 1000 );
+setInterval( jsrrd.dump, 5000 );
+setTimeout( jsrrd.stop, 35000 );
+
