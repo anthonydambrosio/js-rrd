@@ -25,13 +25,13 @@ function seconds( unit, amount ) {
 	Create a RRD object.
 
 	The object contains a ordered collection of buckets.  Each bucket has a timestamp
-	and a value.  Values are calculated but the configured function.  Buckets can have
+	and a value.  Values are calculated by the configured function.  Buckets can have
 	data added to them at any time.  Once the configured period has elapsed the bucket
 	value is calculated and the next bucket is used.  If all the buckets are filled the
 	oldest bucket will be removed and a new bucket appended to the end.
 
 	Arguments
-		unit : Number of seconds bucket is active.
+		unit : Number of seconds a bucket is active.
 		count : Number of buckets.
 		func : Function to apply to bucket when unit has expired.
 */
@@ -44,7 +44,7 @@ function create( unit, count, func ) {
 		dataFunc = {
 			// Count the number of times the update function
 			// was called for the period.
-			// Esentially a counter.
+			// Essentially a counter.
 			count: {
 				value: 0,
 				update: function( data ) {
