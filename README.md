@@ -21,7 +21,7 @@ function create( timeUnits, count, bucketFunction )
 			week
 
 	count - Number of buckets of each timeUnit.
-	
+
 	bucketFunction - Function applied to data added to bucket.
 		Current functions:
 			count - Count each time bucket is updated.
@@ -45,7 +45,7 @@ function stop()
 ```js
 // Create a DB
 // Use 1 second buckets for 10 seconds, sum all data added.
-const jsrrd = require( '../js-rrd/index.js' );
+const jsrrd = require( 'js-rrd' );
 
 var sixtySecondSums = jsrrd.create( 'sec', 10, 'sum' );
 console.dir( sixtySecondSums.update );
