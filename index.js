@@ -1,25 +1,50 @@
+/*
+	js-rrd
+	A javascript in-memory Round-Robin Database inspired by rrdtool but
+	not exactly the same.
+*/
+
 const os = require( 'os' );
 
+/*
+	Calculate the total number of seconds in
+	N units of time.
+*/
 function seconds( unit, amount ) {
 	return ({
-		sec: 1,
-		min: 60,
-		hr: 3600,
-		day: 86400,
-		week: 604800,
-		default: 1
-	}[unit] || 1) * (amount || 1);
+		sec: 1,			// Seconds
+		min: 60,		// Minutes
+		hr: 3600,		// Hours
+		day: 86400,		// Days
+		week: 604800,	// Weeks
+		default: 1		// Default to seconds.
+	}[unit] || 1) * (amount || 1); // Default amount to 1.
 }
 
+/*
+	Create a RRD object.
 
+	The object contains a ordered collection of buckets.  Each bucket has a timestamp
+	and a value.  Values are calculated but the configured function.  Buckets can have
+	data added to them at any time.  Once the configured period has elapsed the bucket
+	value is calculated and the next bucket is used.  If all the buckets are filled the
+	oldest bucket will be removed and a new bucket appended to the end.
+
+	Arguments
+		unit : Number of seconds bucket is active.
+		count : Number of buckets.
+		func : Function to apply to bucket when unit has expired.
+*/
 function create( unit, count, func ) {
-	var result = new Array( count ).fill( 0 );
-		interval = seconds( unit ) * 1000,
-		index = 0,
-		// Data functions.
+	var buckets = new Array( count ).fill( 0 );	// The buckets.
+		interval = seconds( unit ) * 1000,		// Amount of time to fill current bucket in seconds.
+		index = 0,								// Current bucket index in buckets array.
+		// Bucket functions.
+		// If not supplied return count function.
 		dataFunc = {
 			// Count the number of times the update function
 			// was called for the period.
+			// Esentially a counter.
 			count: {
 				value: 0,
 				update: function( data ) {
@@ -42,7 +67,7 @@ function create( unit, count, func ) {
 					return this.value;
 				}
 			},
-			// Sum the data for the period.
+			// Sum the data for the bucket period.
 			sum : {
 				total: 0,
 				update: function( data ) {
@@ -51,10 +76,10 @@ function create( unit, count, func ) {
 				result: function() {
 					var total = this.total;
 					this.total = 0;
-					return { ts: Math.floor( Date.now() / 1000 ), value: total };
+					return total;
 				}
 			},
-			// Average the data for the period.
+			// Average the data for the bucket period.
 			avg : {
 				total: 0.0,
 				count: 0,
@@ -67,52 +92,43 @@ function create( unit, count, func ) {
 					var count = this.count;
 					this.total = 0.0;
 					this.count = 0;
-					var value = count == 0 ? 0.0 : total / count;
-					return { ts: Math.floor( Date.now() / 1000 ), value: value };
+					return count == 0 ? 0.0 : total / count;
 				}
 			}
-		}[func || 'sum'],
+		}[func || 'count'], // return count fucntion if not supplied.
+		/*
+			Calculate the current bucket value using the configured function.
+			Increment to the next bucket if not on last bucket, or
+			shift left all buckets and append latest bucket.
+		*/
 		increment = function() {
-			console.log( 'increment: ' + index );
-			if ( index < result.length ) {
-				result[ index ] = dataFunc.result();
+			if ( index < buckets.length ) {
+				buckets[ index ] = { ts: Math.floor( Date.now() / 1000 ), value: dataFunc.result() };
 				index += 1;
 			} else {
-				result.push( dataFunc.result() );
-				result.shift();
+				buckets.push( { ts: Math.floor( Date.now() / 1000 ), value: dataFunc.result() } );
+				buckets.shift();
 			}
 		};
+		// Set the interval for calling the increment function.
 		var iid = setInterval( increment, interval );
+	// Return the interface.
 	return {
+		// Add data to the current bucket.
 		update: function( data ) {
 			dataFunc.update( data );
 		},
+		// Dump to console all the buckets.
 		dump: function() {
-			console.dir( result, { depth: null } );
+			console.dir( buckets, { depth: null } );
 		},
+		// Fetch the buckets.
 		fetch: function() {
-			return result;
+			return buckets;
 		},
+		// Stop incrementing current bucket.
 		stop: function() {
 			clearInterval( iid );
 		}
 	}
 }
-
-var jsrrd = create( 'min', 3, 'count' );
-
-var updateFunc = function() {
-	var mem = os.freemem();
-	jsrrd.update( mem );
-};
-
-var display = function() {
-	var r = jsrrd.fetch();
-	console.log( "Result" );
-	console.dir( r, { depth: null } );
-}
-
-setInterval( updateFunc, 500 );
-setInterval( jsrrd.dump, 1000 );
-setInterval( jsrrd.stop, 61000 );
-setInterval( display, 90000)
