@@ -127,7 +127,9 @@ exports.create = function create( unit, count, func ) {
 		},
 		// Stop incrementing current bucket.
 		stop: function() {
+			increment();
 			clearInterval( iid );
 		}
 	}
 }
+
