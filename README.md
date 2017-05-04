@@ -42,7 +42,7 @@ function stop()
 	Stop incrementing to next bucket when timeUnit ends.
 
 ### Example
-
+```js
 // Create a DB
 // Use 1 second buckets for 10 seconds, sum all data added.
 const jsrrd = require( '../js-rrd/index.js' );

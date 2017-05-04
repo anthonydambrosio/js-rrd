@@ -1,6 +1,6 @@
 {
   "name": "js-rrd",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "An in memory javascript Round Robin Database.",
   "main": "index.js",
   "scripts": {
