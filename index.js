@@ -4,7 +4,6 @@
 	not exactly the same.
 */
 
-const os = require( 'os' );
 
 /*
 	Calculate the total number of seconds in
