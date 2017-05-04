@@ -1,0 +1,23 @@
+{
+  "name": "js-rrd",
+  "version": "1.0.0",
+  "description": "An in memory javascript Round Robin Database.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anthonydambrosio/js-rrd.git"
+  },
+  "keywords": [
+    "rrd",
+    "javascript"
+  ],
+  "author": "Anthony D'Ambrosio",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/anthonydambrosio/js-rrd/issues"
+  },
+  "homepage": "https://github.com/anthonydambrosio/js-rrd#readme"
+}

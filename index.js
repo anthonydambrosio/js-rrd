@@ -34,7 +34,7 @@ function seconds( unit, amount ) {
 		count : Number of buckets.
 		func : Function to apply to bucket when unit has expired.
 */
-function create( unit, count, func ) {
+exports.create = function create( unit, count, func ) {
 	var buckets = new Array( count ).fill( 0 );	// The buckets.
 		interval = seconds( unit ) * 1000,		// Amount of time to fill current bucket in seconds.
 		index = 0,								// Current bucket index in buckets array.
